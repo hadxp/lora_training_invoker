@@ -4,3 +4,6 @@
 [submodule "diffusion-pipe"]
 	path = diffusion-pipe
 	url = https://github.com/tdrussell/diffusion-pipe.git
+[submodule "ComfyUI"]
+	path = ComfyUI
+	url = https://github.com/comfyanonymous/ComfyUI.git
