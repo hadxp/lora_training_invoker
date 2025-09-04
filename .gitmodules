@@ -1,0 +1,3 @@
+[submodule "diffusion-pipe_framepack"]
+	path = diffusion-pipe_framepack
+	url = https://github.com/kabachuha/diffusion-pipe.git
