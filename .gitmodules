@@ -7,3 +7,6 @@
 [submodule "ComfyUI"]
 	path = ComfyUI
 	url = https://github.com/comfyanonymous/ComfyUI.git
+[submodule "div_utils"]
+	path = div_utils
+	url = https://git.rec-its.com/REC-Intern/div_utils.git

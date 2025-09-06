@@ -1,0 +1,5 @@
+.idea/
+.vs/
+*/bin/
+*/obj/
+LoraTrainingInvokerWebUI/gradio_ui_builder/venv/
