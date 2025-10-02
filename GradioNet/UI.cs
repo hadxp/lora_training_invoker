@@ -34,8 +34,17 @@ internal class Ui {
 		var textEncoder2Path = Textbox.Payload(input.Data[3]);
 		var imageEncoderPath = Textbox.Payload(input.Data[4]);
 		var vaePath = Textbox.Payload(input.Data[5]);
-
-		await Train(datasetPath, checkpointPath, textEncoder1Path, textEncoder2Path, imageEncoderPath, vaePath);
+		
+		var dataset = MtfxUtil.FileFromRelativePath(datasetPath);
+		var checkpoint = MtfxUtil.FileFromRelativePath(checkpointPath);
+		var textEncoder1 = MtfxUtil.FileFromRelativePath(textEncoder1Path);
+		var textEncoder2 = MtfxUtil.FileFromRelativePath(textEncoder2Path);
+		var imageEncoder = MtfxUtil.FileFromRelativePath(imageEncoderPath);
+		var vae = MtfxUtil.FileFromRelativePath(vaePath);
+		
+		if(dataset != null && checkpoint != null && textEncoder1 != null && textEncoder2 != null && imageEncoder != null && vae != null) {
+			await Train(dataset, checkpoint, textEncoder1, textEncoder2, imageEncoder, vae);
+		}
 		
 		return gr.Output(gr.Textbox(visible: true));
 	}
@@ -48,10 +57,17 @@ internal class Ui {
 		var imageEncoderPath = Textbox.Payload(input.Data[4]);
 		var vaePath = Textbox.Payload(input.Data[5]);
 
-		var datasetFile = await GenerateCaptions(triggerword);
-		
-		await Train(datasetFile?.FullName ?? string.Empty, checkpointPath, textEncoder1Path, textEncoder2Path, imageEncoderPath, vaePath);
-		
+		var dataset = await GenerateCaptions(triggerword);
+		var checkpoint = MtfxUtil.FileFromRelativePath(checkpointPath);
+		var textEncoder1 = MtfxUtil.FileFromRelativePath(textEncoder1Path);
+		var textEncoder2 = MtfxUtil.FileFromRelativePath(textEncoder2Path);
+		var imageEncoder = MtfxUtil.FileFromRelativePath(imageEncoderPath);
+		var vae = MtfxUtil.FileFromRelativePath(vaePath);
+
+		if(dataset != null && checkpoint != null && textEncoder1 != null && textEncoder2 != null && imageEncoder != null && vae != null) {
+			await Train(dataset, checkpoint, textEncoder1, textEncoder2, imageEncoder, vae);
+		}
+
 		return gr.Output(gr.Textbox(visible: true));
 	}
 	
@@ -100,12 +116,25 @@ internal class Ui {
 			return blocks;
 		}
 	}
-
+	
+	public static readonly string ProgramToRun = Util.GetProgramToExecute();
+	
 	private static async Task<FileInfo?> GenerateCaptions(string triggerword) {
 		var projectRootDir = Util.GetRootDir();
 
 		var datasetGeneratorDir = projectRootDir?.GetSubDirectory("DatasetGenerator");
 		var runPythonFile = datasetGeneratorDir?.GetFile("main.py");
+		if(datasetGeneratorDir?.GetSubDirectory("venv").Exists is false) {
+			if(await CreatePythonVenv(datasetGeneratorDir)) {
+				if(await InstallDatasetGeneratorDependencies(datasetGeneratorDir)) {
+					// continue as usual
+				} else {
+					throw new Exception("Failed to install dataset generator dependencies");
+				}
+			} else {
+				throw new Exception("Failed to create venv");
+			}
+		}
 
 		var venvPython = Util.GetVenvPython(datasetGeneratorDir);
 
@@ -125,14 +154,14 @@ internal class Ui {
 		}
 
 		var runPythonCmd = $"-c {venvPython?.FullName ?? "python"} {runPythonFile?.FullName ?? "main.py"} {pythonInputDirectory?.FullName ?? "input"} {pythonOutputDirectory?.FullName ?? "output"} {triggerword}";
-		var output = MtfxUtil.ExecuteProcess("cmd.exe", datasetGeneratorDir, out var err, [runPythonCmd], OutDataReceivedEventHandler, ErrorDataReceivedEventHandler);
+		var output = MtfxUtil.ExecuteProcess(ProgramToRun, datasetGeneratorDir, out var err, [runPythonCmd], OutDataReceivedEventHandler, ErrorDataReceivedEventHandler);
 		if(output.IsNullOrEmpty()) {
 			return null;
 		}
 		#endif
 
 		var jsonlFiles = outputDir?.GetFiles("*.jsonl", SearchOption.TopDirectoryOnly);
-		if(!jsonlFiles?.Any() is true && jsonlFiles.Length == 1) {
+		if(jsonlFiles?.Any() is true && jsonlFiles.Length == 1) {
 			var jsonlFile = jsonlFiles[0];
 			return jsonlFile;
 		}
@@ -140,7 +169,7 @@ internal class Ui {
 		return null;
 	}
 	
-	private static async Task Train(string datasetPath, string checkpointPath, string textEncoder1Path, string textEncoder2Path, string imageEncoderPath, string vaePath) {
+	private static async Task Train(FileInfo dataset, FileInfo checkpoint, FileInfo textEncoder1, FileInfo textEncoder2, FileInfo imageEncoder, FileInfo vae) {
 		var projectRootDir = Util.GetRootDir();
 		var musibitunerDir = projectRootDir?.GetSubDirectory("musubi-tuner");
 		var venvPython = Util.GetVenvPython(musibitunerDir);
@@ -156,12 +185,12 @@ internal class Ui {
 		var cacheLatentCommandLines = scriptsDir?.GetFile("fpack_cache_latents.txt").ReadAllLines();
 		var cacheTextEncoderOutputsCommandLines = scriptsDir?.GetFile("fpack_cache_text_encoder_outputs.txt").ReadAllLines();
 		var trainNetworkCommandLines = scriptsDir?.GetFile("fpack_train_network.txt").ReadAllLines();
-
+		
 		#region dataset and musubituner config handling
 
 		var datasetImgConfigNewLines = Util.ReplaceInList(datasetImgConfigLines, line => {
 			if(line.Contains("image_jsonl_file")) {
-				return @$"image_jsonl_file = ""{datasetPath}""";
+				return @$"image_jsonl_file = ""{dataset.FullName}""";
 			}
 
 			return line;
@@ -173,23 +202,23 @@ internal class Ui {
 
 		var musubiTunerConfigNewLines = Util.ReplaceInList(musubiTunerConfigLines, line => {
 			if(line.Contains("dit")) {
-				return @$"dit = ""{checkpointPath}""";
+				return @$"dit = ""{checkpoint.FullName}""";
 			}
 
 			if(line.Contains("text_encoder1")) {
-				return @$"text_encoder1 = ""{textEncoder1Path}""";
+				return @$"text_encoder1 = ""{textEncoder1.FullName}""";
 			}
 
 			if(line.Contains("text_encoder2")) {
-				return @$"text_encoder2 = ""{textEncoder2Path}""";
+				return @$"text_encoder2 = ""{textEncoder2.FullName}""";
 			}
 
 			if(line.Contains("image_encoder")) {
-				return @$"image_encoder = ""{imageEncoderPath}""";
+				return @$"image_encoder = ""{imageEncoder.FullName}""";
 			}
 
 			if(line.Contains("vae")) {
-				return @$"vae = ""{vaePath}""";
+				return @$"vae = ""{vae.FullName}""";
 			}
 
 			return line;
@@ -209,11 +238,11 @@ internal class Ui {
 			}
 
 			if(line.Contains("vae")) {
-				return $"--vae {vaePath}";
+				return $"--vae {vae.FullName}";
 			}
 
 			if(line.Contains("image_encoder")) {
-				return $"--image_encoder {imageEncoderPath}";
+				return $"--image_encoder {imageEncoder.FullName}";
 			}
 
 			return line;
@@ -225,11 +254,11 @@ internal class Ui {
 			}
 
 			if(line.Contains("text_encoder1")) {
-				return $"--text_encoder1 {textEncoder1Path}";
+				return $"--text_encoder1 {textEncoder1.FullName}";
 			}
 
 			if(line.Contains("text_encoder2")) {
-				return $"--text_encoder2 {textEncoder2Path}";
+				return $"--text_encoder2 {textEncoder2.FullName}";
 			}
 
 			return line;
@@ -241,7 +270,7 @@ internal class Ui {
 			}
 
 			if(line.Contains("image_encoder")) {
-				return $"--image_encoder {imageEncoderPath}";
+				return $"--image_encoder {imageEncoder.FullName}";
 			}
 
 			if(line.Contains("config_file")) {
@@ -266,7 +295,7 @@ internal class Ui {
 				Debug.WriteLine(@"[err] " + e.Data);
 			}
 
-			var output = MtfxUtil.ExecuteProcess("bash", musibitunerDir, out var err, [arg], OutDataReceivedEventHandler, ErrorDataReceivedEventHandler);
+			var output = MtfxUtil.ExecuteProcess(ProgramToRun, musibitunerDir, out var err, [arg], OutDataReceivedEventHandler, ErrorDataReceivedEventHandler);
 
 			#endregion cache latents
 		}
@@ -284,7 +313,7 @@ internal class Ui {
 				Debug.WriteLine(@"[err] " + e.Data);
 			}
 
-			var output = MtfxUtil.ExecuteProcess("bash", musibitunerDir, out var err, [arg], OutDataReceivedEventHandler, ErrorDataReceivedEventHandler);
+			var output = MtfxUtil.ExecuteProcess(ProgramToRun, musibitunerDir, out var err, [arg], OutDataReceivedEventHandler, ErrorDataReceivedEventHandler);
 
 			#endregion cache text encoder outputs
 		}
@@ -302,9 +331,30 @@ internal class Ui {
 				Debug.WriteLine(@"[err] " + e.Data);
 			}
 
-			var output = MtfxUtil.ExecuteProcess("bash", musibitunerDir, out var err, [arg], OutDataReceivedEventHandler, ErrorDataReceivedEventHandler);
+			var output = MtfxUtil.ExecuteProcess(ProgramToRun, musibitunerDir, out var err, [arg], OutDataReceivedEventHandler, ErrorDataReceivedEventHandler);
 
 			#endregion train
 		}
+	}
+
+	private static async Task<bool> CreatePythonVenv(DirectoryInfo? datasetGeneratorDir) {
+		var cmd = "-c python -m venv venv";
+		var output = MtfxUtil.ExecuteProcess(ProgramToRun, datasetGeneratorDir, out var err, [cmd]);
+		var venvPython = Util.GetVenvPython(datasetGeneratorDir);
+		if(venvPython?.Exists is true) {
+			// venv generation successful
+			return true;
+		}
+		// venv generation unsuccessful
+		return false;
+	}
+
+	private static async Task<bool> InstallDatasetGeneratorDependencies(DirectoryInfo? datasetGeneratorDir) {
+		var venvScriptsDir = Util.GetVenvPython(datasetGeneratorDir)?.Directory;
+		var pipExe = venvScriptsDir?.GetFile("pip.exe");
+		var requirementsFile = datasetGeneratorDir?.GetFile("requirements.txt");
+		var cmd = $"-c {pipExe?.FullName ?? "pip"} -r {requirementsFile?.FullName ?? "./requirements.txt"}";
+		var output = MtfxUtil.ExecuteProcess(ProgramToRun, datasetGeneratorDir, out var err, [cmd]);
+		return false;
 	}
 }

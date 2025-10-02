@@ -5,6 +5,15 @@ using mtfx.function;
 namespace GradioNet.util;
 
 public static class Util {
+	public static string GetProgramToExecute() {
+		if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+			return "cmd.exe";
+		} else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+			return "/bin/bash";
+		}
+
+		throw new Exception("No executable found");
+	}
 	public static DirectoryInfo? GetRootDir() {
 		var projectRootDir = MtfxUtil.AssemblyDir;
 
