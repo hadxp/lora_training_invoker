@@ -1,0 +1,7 @@
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch>=2.0.0
+transformers>=4.35.0
+pillow>=10.0.0
+accelerate>=0.23.0
+einops
+timm

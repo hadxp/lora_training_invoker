@@ -1,0 +1,11 @@
+﻿uv run --active accelerate launch \
+--num_processes 1 \
+--num_machines 1 \
+--dynamo_backend no \
+--num_cpu_threads_per_process 1 \
+--mixed_precision bf16 \
+./fpack_train_network.py \
+--dataset_config /home/philipp-haderer/Dokumente/musubi-tuner/dataset/dataset_img.toml \
+--f1 \
+--image_encoder /home/philipp-haderer/Dokumente/FramePack/hf_download/hub/models--lllyasviel--flux_redux_bfl/snapshots/45b801affc54ff2af4e5daf1b282e0921901db87 \
+--config_file /home/philipp-haderer/Dokumente/musubi-tuner/dataset/output/framepack/julia_forstner/julia_forstner.toml

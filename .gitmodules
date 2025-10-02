@@ -1,12 +1,6 @@
-[submodule "diffusion-pipe_framepack"]
-	path = diffusion-pipe_framepack
-	url = https://github.com/kabachuha/diffusion-pipe.git
-[submodule "diffusion-pipe"]
-	path = diffusion-pipe
-	url = https://github.com/tdrussell/diffusion-pipe.git
-[submodule "ComfyUI"]
-	path = ComfyUI
-	url = https://github.com/comfyanonymous/ComfyUI.git
 [submodule "div_utils"]
 	path = div_utils
 	url = https://git.rec-its.com/REC-Intern/div_utils.git
+[submodule "musubi-tuner"]
+	path = musubi-tuner
+	url = https://github.com/kohya-ss/musubi-tuner.git

@@ -3,3 +3,4 @@
 */bin/
 */obj/
 LoraTrainingInvokerWebUI/gradio_ui_builder/venv/
+DatasetGenerator/venv/

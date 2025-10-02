@@ -1,0 +1,23 @@
+# resolution, caption_extension, batch_size, num_repeats, enable_bucket, bucket_no_upscale should be set in either general or datasets
+# otherwise, the default values will be used for each item
+
+# general configurations
+[general]
+resolution = 1024
+caption_extension = ".txt"
+batch_size = 1
+enable_bucket = true
+bucket_no_upscale = false
+
+[[datasets]]
+#fp_latent_window_size = 1
+fp_1f_clean_indices = [0]	# indices of clean latents for 1f
+fp_1f_target_index = 0		# target index for 1f clean latents
+fp_1f_no_post = false		# whether to add zero values as clean latent post
+image_jsonl_file = "/home/philipp-haderer/Schreibtisch/julia_forstner/input/out/0_dataset.jsonl"
+#image_directory = "/home/philipp-haderer/Dokumente/musubi-tuner/dataset/data/input/julia_forstner"
+#control_directory = "/home/philipp-haderer/Dokumente/musubi-tuner/dataset/data/input/julia_forstner/control"
+cache_directory = "/home/philipp-haderer/Dokumente/musubi-tuner/dataset/data/input/cache"
+num_repeats = 1 # optional, default is 1. Number of times to repeat the dataset. Useful to balance the multiple datasets with different sizes.
+
+# other datasets can be added here. each dataset can have different configurations

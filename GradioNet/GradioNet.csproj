@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\DatasetGenerator\DatasetGenerator.csproj"/>
+        <ProjectReference Include="..\div_utils\mtfx.function\mtfx.function.csproj"/>
         <ProjectReference Include="..\div_utils\mtfx.reflection\mtfx.reflection.csproj"/>
         <ProjectReference Include="..\div_utils\Mtfx\Mtfx.csproj"/>
     </ItemGroup>

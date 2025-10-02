@@ -1,0 +1,7 @@
+﻿uv run --active ./fpack_cache_latents.py \
+--dataset_config /home/philipp-haderer/Dokumente/musubi-tuner/dataset/dataset_img.toml \
+--vae /home/philipp-haderer/Dokumente/FramePack/hf_download/hub/models--hunyuanvideo-community--HunyuanVideo/snapshots/e8c2aaa66fe3742a32c11a6766aecbf07c56e773 \
+--vae_chunk_size 32 \
+--one_frame \
+--f1 \
+--image_encoder /home/philipp-haderer/Dokumente/FramePack/hf_download/hub/models--lllyasviel--flux_redux_bfl/snapshots/45b801affc54ff2af4e5daf1b282e0921901db87

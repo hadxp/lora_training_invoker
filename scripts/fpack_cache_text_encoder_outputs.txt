@@ -1,0 +1,5 @@
+﻿uv run --active --extra cu128 ./fpack_cache_text_encoder_outputs.py \
+--dataset_config /home/philipp-haderer/Dokumente/musubi-tuner/dataset/dataset_img.toml \
+--text_encoder1 /home/philipp-haderer/Dokumente/FramePack/hf_download/hub/models--hunyuanvideo-community--HunyuanVideo/snapshots/e8c2aaa66fe3742a32c11a6766aecbf07c56e773 \
+--text_encoder2 /home/philipp-haderer/Dokumente/FramePack/hf_download/hub/models--hunyuanvideo-community--HunyuanVideo/snapshots/e8c2aaa66fe3742a32c11a6766aecbf07c56e773 \
+--batch_size 16
